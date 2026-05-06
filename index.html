@@ -1,127 +1,266 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title>Pokémon Capture Game</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
-    body { font-family: Arial; text-align: center; }
-    img.silhouette { filter: brightness(0); width: 200px; }
-    #health { font-size: 20px; color: red; }
-    #collection img { width: 50px; margin: 5px; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background-image: url('gameBG.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      color: #fff;
+    }
+
+    /* START SCREEN */
+    #startScreen {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-image: url('bg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    #startScreen a {
+      display: block;
+      margin-top: 20px;
+      text-decoration: none;
+    }
+
+    .float-img {
+      width: 1200px;
+      animation: floatPulse 4s ease-in-out infinite;
+      cursor: pointer;
+    }
+
+    @keyframes floatPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.07); }
+    }
+
+    /* GAME SCREEN – moved lower */
+    #gameScreen {
+      display: none;
+      min-height: 100vh;
+      padding: 200px 20px 40px;   /* content a bit lower */
+    }
+
+    #gameContent {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Silhouette – no extra box */
+    #pokemon {
+      width: 170px;
+      margin: 0 auto 16px;
+      display: block;
+      filter: brightness(0);
+      -webkit-filter: brightness(0);
+      border: none;
+      outline: none;
+      box-shadow: none;
+      background: none;
+    }
+
+    #pokemon.reveal {
+      filter: brightness(1);
+      -webkit-filter: brightness(1);
+      border: none;
+      outline: none;
+      box-shadow: none;
+      background: none;
+    }
+
+    /* Line of letters */
+    #word {
+      font-size: 22px;
+      letter-spacing: 5px;
+      margin: 10px 0 14px;
+    }
+
+    /* Hearts */
+    #health {
+      font-size: 24px;
+      margin: 10px 0 14px;
+      color: #f00;
+    }
+
+    /* Input row */
+    .input-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .input-row input {
+      width: 120px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .input-row button {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      background: #007cba;
+      color: white;
+    }
+
+    /* Messages */
+    #result {
+      margin: 16px 0 0;
+    }
+
+    #wrong-letters {
+      font-size: 16px;
+    }
+
+    /* Captured Pokémon */
+    #collection {
+      margin-top: 18px;
+    }
+
+    #collection img {
+      width: 40px;
+      margin: 3px;
+      border: none;
+      border-radius: 4px;
+    }
   </style>
 </head>
+
 <body>
-  <h1>Guess That Pokemon</h1>
-  <img id="pokemon" class="silhouette" src="" alt="Pokemon silhouette">
-  <p id="word"></p>
-  <p id="health"></p>
-  <input type="text" id="letter" maxlength="1" placeholder="Guess a letter" onkeypress="if(event.key === 'Enter') guessLetter()">
-  <button onclick="guessLetter()">Guess</button>
-  <p id="result"></p>
 
-  <p>Wrong Guesses: <span id="wrong-letters" style="font-weight: bold; color: #555;">None</span></p>
+<div id="startScreen">
+  <a href="#" onclick="startGame(); return false;">
+    <img src="button.png" class="float-img">
+  </a>
+</div>
 
-  <h2>Captured Pokémon</h2>
-  <div id="collection"></div>
+<div id="gameScreen">
+  <div id="gameContent">
 
-  <script>
-  let pokemons = [];
-  let current, displayWord, health;
+    <img id="pokemon" src="" alt="Silhouette">
 
-  //changes here below
-  let isPaused = false;
+    <p id="word"></p>
+    <p id="health"></p>
 
-  //changes
-  let wrongLetters = [];
+    <div class="input-row">
+      <input type="text" id="letter" maxlength="1"
+        placeholder="Guess a letter"
+        onkeypress="if(event.key === 'Enter') guessLetter()">
+      <button onclick="guessLetter()">Guess</button>
+    </div>
 
-  // Load JSON file
-  fetch("gen1.json")
-    .then(response => response.json())
-    .then(data => {
-      pokemons = data;
-      newGame(); 
-    });
+    <p id="result"></p>
 
-  function newGame() {
-    current = pokemons[Math.floor(Math.random() * pokemons.length)];
-    displayWord = "_".repeat(current.name.length).split("");
-    health = 5;
+    <p>Wrong Guesses:
+      <span id="wrong-letters">None</span>
+    </p>
 
-    //changes here below
-    isPaused = false;
+    <h3>Captured Pokémon</h3>
+    <div id="collection"></div>
+  </div>
+</div>
 
-    //changes
-    wrongLetters = [];
-    document.getElementById("wrong-letters").textContent = "None";
-    
-    document.getElementById("pokemon").src = current.img;
-    document.getElementById("pokemon").className = "silhouette";
-    document.getElementById("word").textContent = displayWord.join(" ");
-    document.getElementById("health").textContent = "❤️".repeat(health);
-    document.getElementById("result").textContent = "";
-    //changes here below
-    document.getElementById("letter").disabled = false;
-  }
+<script>
+let pokemons = [];
+let current, displayWord, health;
+let wrongLetters = [];
 
-  function guessLetter() {
-    if (isPaused) return; //changes
-    const letter = document.getElementById("letter").value.toLowerCase();
-    if (!letter) return; //changes
+fetch("gen1.json")
+  .then(res => res.json())
+  .then(data => pokemons = data);
 
-    if (/\d/.test(letter)) {
-      document.getElementById("letter").value = "";
-      return;
-    }
+function startGame() {
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("gameScreen").style.display = "block";
+  newGame();
+}
 
+function newGame() {
+  // 👇 Optional debug line (you can remove it later)
+  console.log("src =", current?.img);
 
-    let correct = false;
-    for (let i = 0; i < current.name.length; i++) {
-      if (current.name[i].toLowerCase() === letter) {
-        displayWord[i] = current.name[i];
-        correct = true;
-      }
-    }
-    if (!correct) {
-      health--;
-      
-      // Track wrong letters here
-      if (!wrongLetters.includes(letter)) {
-        wrongLetters.push(letter);
-      }
-      document.getElementById("wrong-letters").textContent = wrongLetters.join(", ");
+  current = pokemons[Math.floor(Math.random() * pokemons.length)];
+  displayWord = "_".repeat(current.name.length).split("");
+  health = 5;
+  wrongLetters = [];
 
+  const img = document.getElementById("pokemon");
+  img.src = current.img;
+  img.classList.remove("reveal");
+  img.classList.add("silhouette");
 
+  document.getElementById("word").textContent = displayWord.join(" ");
+  document.getElementById("health").textContent = "❤".repeat(health);
+  document.getElementById("result").textContent = "";
+  document.getElementById("wrong-letters").textContent = "None";
+}
 
-      isPaused = true;
-      document.getElementById("result").textContent = "Incorrect guess! It was not " + letter + ".";
-      document.getElementById("letter").disabled = true;
-      
-      setTimeout(() => {
-        isPaused = false;
-        document.getElementById("letter").disabled = false;
-        document.getElementById("result").textContent = "";
-      }, 2000); // 2 seconds pause
+function guessLetter() {
+  const input = document.getElementById("letter");
+  const letter = input.value.toLowerCase();
+  if (!letter) return;
 
+  let correct = false;
 
-
-
-    }
-    document.getElementById("word").textContent = displayWord.join(" ");
-    document.getElementById("health").textContent = "❤️".repeat(health);
-    document.getElementById("letter").value = "";
-
-    if (displayWord.join("") === current.name) {
-      isPaused = true;
-      document.getElementById("result").textContent = "You captured " + current.name + "!";
-      document.getElementById("pokemon").className = "";
-      document.getElementById("collection").innerHTML += `<img src="${current.img}">`;
-      setTimeout(newGame, 1000);
-    } else if (health <= 0) {
-      isPaused = true;
-      document.getElementById("result").textContent = "You fainted! It was " + current.name + ".";
-      document.getElementById("pokemon").className = "";
-      setTimeout(newGame, 1000);
+  for (let i = 0; i < current.name.length; i++) {
+    if (current.name[i].toLowerCase() === letter) {
+      displayWord[i] = current.name[i];
+      correct = true;
     }
   }
+
+  if (!correct) {
+    health--;
+    if (!wrongLetters.includes(letter)) {
+      wrongLetters.push(letter);
+    }
+    document.getElementById("wrong-letters").textContent = wrongLetters.join(", ");
+  }
+
+  document.getElementById("word").textContent = displayWord.join(" ");
+  document.getElementById("health").textContent = "❤".repeat(health);
+  input.value = "";
+
+  if (displayWord.join("") === current.name) {
+    document.getElementById("result").textContent = "You captured " + current.name + "!";
+    const img = document.getElementById("pokemon");
+    img.classList.remove("silhouette");
+    img.classList.add("reveal");
+    document.getElementById("collection").innerHTML += `<img src="${current.img}">`;
+    setTimeout(newGame, 1200);
+
+  } else if (health <= 0) {
+    document.getElementById("result").textContent = "You fainted! It was " + current.name;
+    const img = document.getElementById("pokemon");
+    img.classList.remove("silhouette");
+    img.classList.add("reveal");
+    setTimeout(newGame, 1200);
+  }
+}
 </script>
 
 </body>
